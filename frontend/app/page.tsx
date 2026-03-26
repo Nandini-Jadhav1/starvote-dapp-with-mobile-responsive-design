@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { isConnected, requestAccess, getAddress, signTransaction } from "@stellar/freighter-api";
 import * as StellarSdk from "@stellar/stellar-sdk";
+import { castVote, fetchResults } from "../lib/contract";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -147,75 +148,24 @@ export default function Home() {
   const vote = useCallback(async (optionIdx: number) => {
     if (!address || hasVoted || voteStatus !== "idle") return;
     setVoteError(null); setTxHash(null);
-
     try {
       setVoteStatus("signing");
-
-      // Build a real Stellar transaction
-      const server  = new StellarSdk.Horizon.Server(HORIZON_URL);
-      const account = await server.loadAccount(address);
-
-      // Memo encodes the vote choice (real contract call would go here)
-      const tx = new StellarSdk.TransactionBuilder(account, {
-        fee: StellarSdk.BASE_FEE,
-        networkPassphrase: NETWORK_PASSPHRASE,
-      })
-        .addOperation(
-          // Self-payment of 0.0000001 XLM to encode the vote
-          StellarSdk.Operation.payment({
-            destination: address,
-            asset:       StellarSdk.Asset.native(),
-            amount:      "0.0000001",
-          })
-        )
-        .addMemo(StellarSdk.Memo.text(`vote:option:${optionIdx}`))
-        .setTimeout(30)
-        .build();
-
-      // 👇 This opens the Freighter confirmation popup
-      const signedResult = await signTransaction(tx.toXDR(), { networkPassphrase: NETWORK_PASSPHRASE });
-      if (signedResult.error) {
-        setVoteStatus("error");
-        setVoteError("Transaction rejected. Please approve in Freighter.");
-        return;
-      }
-
+      const hash = await castVote(optionIdx);
       setVoteStatus("submitting");
-
-      // Submit to Stellar testnet
-      const signedTx = StellarSdk.TransactionBuilder.fromXDR(
-        signedResult.signedTxXdr, NETWORK_PASSPHRASE
-      );
-      const result = await server.submitTransaction(signedTx);
-
-      setVoteStatus("confirming");
       await new Promise(r => setTimeout(r, 500));
-
-      // Update UI optimistically
+      setVoteStatus("confirming");
+      const results = await fetchResults();
       setPoll(prev => {
         if (!prev) return prev;
-        const r = [...prev.results];
-        r[optionIdx] = (r[optionIdx] ?? 0) + 1;
-        const updated = { ...prev, results: r, totalVotes: prev.totalVotes + 1 };
-        writeCache(updated);
-        return updated;
+        return { ...prev, results, totalVotes: results.reduce((a,b) => a+b, 0) };
       });
-
       setVotedIdx(optionIdx);
       setHasVoted(true);
-      setTxHash(result.hash);
+      setTxHash(hash);
       setVoteStatus("success");
-
-    } catch (e: unknown) {
+    } catch (e) {
       setVoteStatus("error");
-      const msg = e instanceof Error ? e.message : "Vote failed.";
-      if (msg.includes("tx_insufficient_balance")) {
-        setVoteError("Insufficient XLM balance. Fund your testnet wallet at laboratory.stellar.org.");
-      } else if (msg.includes("rejected")) {
-        setVoteError("Transaction rejected in Freighter. Please try again.");
-      } else {
-        setVoteError(msg);
-      }
+      setVoteError(e instanceof Error ? e.message : "Vote failed.");
     }
   }, [address, hasVoted, voteStatus]);
 
