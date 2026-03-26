@@ -325,7 +325,7 @@ export default function Home() {
                 <div className="flex items-center gap-4 text-xs text-gray-500 mb-6">
                   <span>🗳️ {poll?.totalVotes} votes</span>
                   <span>⏱️ {poll?.daysLeft} days remaining</span>
-                  <span>📄 {CONTRACT_ID ? "Contract deployed" : "Mock mode"}</span>
+                  <span>📄 Live mode</span>
                 </div>
 
                 {/* Vote options */}
