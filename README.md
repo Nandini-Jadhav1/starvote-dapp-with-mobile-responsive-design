@@ -1,4 +1,4 @@
-# ⭐ StarVote — Stellar Live Poll (Orange Belt dApp)
+<!-- # ⭐ StarVote — Stellar Live Poll (Orange Belt dApp)
 
 A fully on-chain live polling dApp built with **Soroban** smart contracts on **Stellar Testnet** and **Next.js 16**. Every vote is a signed blockchain transaction with real-time result updates.
 
@@ -8,7 +8,7 @@ A fully on-chain live polling dApp built with **Soroban** smart contracts on **S
 > https://orange-belt-deploy-ra74.vercel.app
 
 ## 📹 Demo Video
-> https://youtu.be/mpj_mVS9BTk
+>https://youtu.be/mpj_mVS9BTk
 ## ✅ Tests Passing (7/7)
 ![Tests Passing](./test-results.png)
 
@@ -245,4 +245,38 @@ docs: add demo video link
 ---
 
 ## License
-MIT © 2026
+MIT © 2026 -->
+
+
+# StarVote — Stellar On-Chain Voting dApp (Level 4)
+
+## Live Demo
+https://starvote-woad.vercel.app/
+
+## Contract Addresses (Stellar Testnet)
+| Contract | Address |
+|---|---|
+| StarVote (hello-world) | CBD7ASWENRK7NHHAQSZFBHRIEI4IMR3LASJ2263CCDOYSHPDZMYSPCQ2 |
+| StarToken | CAJJQVIZMRADM457Q3TEXZTS3C7NWDPJEVUAEQ3BZ2PZQPKBRRKDZ367 |
+
+## Inter-Contract Call
+StarVote's `vote()` function stores and links to the StarToken contract address.
+Each vote triggers a cross-contract reference to mint STAR token rewards.
+Sample transaction hash: 6df21dd1f64ba70307179229cce555acb818e88547817...
+
+## CI/CD
+![CI](https://github.com/Nandini-Jadhav1/starvote-dapp-with-mobile-responsive-design/actions/workflows/ci.yml/badge.svg)
+
+
+### Mobile Responsive View
+![mobile](./frontend/screenshots/mobile.png)
+
+### CI/CD Pipeline Running
+![ci](./frontend/screenshots/ci.png)
+
+## Level 4 Features
+- Inter-contract calls: StarVote links to StarToken contract
+- Custom STAR token deployed on Stellar testnet  
+- Real-time event streaming via Soroban RPC polling
+- GitHub Actions CI/CD (frontend build + Rust contract compilation)
+- Mobile responsive design
